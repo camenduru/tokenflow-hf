@@ -3,7 +3,7 @@ import os
 from torchvision.io import read_video,write_video
 def video_identity(video):
     video, _, _ = read_video(video, output_format="TCHW")
-    return type(video)
+    return str(type(video))
 
 with gr.Blocks() as demo:
   vid = gr.Video()
