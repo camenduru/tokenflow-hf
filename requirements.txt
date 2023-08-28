@@ -1,0 +1,14 @@
+pillow
+diffusers
+ftfy
+transformers
+opencv-python 
+tqdm
+numpy
+pyyaml
+accelerate
+xformers
+tensorboard
+kornia
+av
+torchvision==0.15.2
