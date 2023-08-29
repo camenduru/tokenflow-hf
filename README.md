@@ -1,7 +1,7 @@
 ---
 title: Tokenflow
-emoji: 🏢
-colorFrom: gray
+emoji: 🐠
+colorFrom: purple
 colorTo: blue
 sdk: gradio
 sdk_version: 3.41.2
