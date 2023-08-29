@@ -68,7 +68,7 @@ with gr.Blocks(css="style.css") as demo:
 
     with gr.Row():
         input_vid = gr.Video(label="Input Video", interactive=True, elem_id="input_video")
-        output_vid = gr.Image(label="Edited Video", interactive=False, elem_id="output_video")
+        output_vid = gr.Video(label="Edited Video", interactive=False, elem_id="output_video")
         input_vid.style(height=365, width=365)
         output_vid.style(height=365, width=365)
     
