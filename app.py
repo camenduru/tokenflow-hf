@@ -24,11 +24,11 @@ with gr.Blocks(css="style.css") as demo:
         input_vid.style(height=365, width=365)
         output_vid.style(height=365, width=365)
     
-    with gr.Group(visible=False) as share_btn_container:
-        with gr.Group(elem_id="share-btn-container"):
-            community_icon = gr.HTML(community_icon_html, visible=True)
-            loading_icon = gr.HTML(loading_icon_html, visible=False)
-            share_button = gr.Button("Share to community", elem_id="share-btn", visible=True)
+    # with gr.Group(visible=False) as share_btn_container:
+        # with gr.Group(elem_id="share-btn-container"):
+        #     community_icon = gr.HTML(community_icon_html, visible=True)
+        #     loading_icon = gr.HTML(loading_icon_html, visible=False)
+        #     share_button = gr.Button("Share to community", elem_id="share-btn", visible=True)
         
    
     with gr.Row():
