@@ -1,3 +1,51 @@
+import torch
+from diffusers import StableDiffusionPipeline, DDIMScheduler
+
+
+
+# load sd model
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model_id = "stabilityai/stable-diffusion-2-1-base"
+inv_pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16).to(device)
+inv_pipe.scheduler = DDIMScheduler.from_pretrained(model_id, subfolder="scheduler")
+
+
+def preprocess(data_path:str = 'examples/woman-running.mp4',
+              height:int = 512, 
+              weidth: int = 512,
+              # save_dir: str = "latents",
+              steps: int = 500,
+               batch_size: int = 8,
+               save_steps: int = 50,
+               n_frames: int = 40,
+               inversion_prompt:str = ''
+              ):
+        
+    # save_video_frames(data_path, img_size=(height, weidth))
+    frames = video_to_frames(data_path, img_size=(height, weidth))
+    # data_path = os.path.join('data', Path(video_path).stem)
+
+    toy_scheduler = DDIMScheduler.from_pretrained(model_id, subfolder="scheduler")
+    toy_scheduler.set_timesteps(save_steps)
+    timesteps_to_save, num_inference_steps = get_timesteps(toy_scheduler, num_inference_steps=save_steps,
+                                                           strength=1.0,
+                                                           device=device)
+    seed_everything(1)
+    
+    frames, latents = get_data(inv_pipe, frames, n_frames)
+    # inverted_latents = noisy_latents
+    inverted_latents = extract_latents(inv_pipe, num_steps = steps, 
+                                       latent_frames = latents, 
+                                       batch_size = batch_size, 
+                                       timesteps_to_save = timesteps_to_save,
+                                       inversion_prompt = inversion_prompt,)
+   
+
+
+
+
+    return frames, latents, inverted_latents
+
 import gradio as gr
 
 ########
