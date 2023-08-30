@@ -79,8 +79,9 @@ def preprocess_and_invert(video,
         inverted_latents = gr.State(value=inverted_latents)
         do_inversion = False
    
-
-    return frames, latents, inverted_latents, do_inversion
+    # temp to check something
+    output_vid = frames
+    return frames, latents, inverted_latents, do_inversion, output_vid
 
 
 
@@ -172,7 +173,8 @@ with gr.Blocks(css="style.css") as demo:
           outputs = [frames,
                      latents,
                      inverted_latents,
-                     do_inversion
+                     do_inversion,
+                     output_vid
               
           ])
 
