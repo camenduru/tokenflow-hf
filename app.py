@@ -17,7 +17,10 @@ inv_pipe.scheduler = DDIMScheduler.from_pretrained(model_id, subfolder="schedule
 def randomize_seed_fn():
     seed = random.randint(0, np.iinfo(np.int32).max)
     return seed
-
+    
+def reset_do_inversion():
+        return True
+    
 def preprocess_and_invert(video,
                           frames,
                           latents,
@@ -138,8 +141,7 @@ with gr.Blocks(css="style.css") as demo:
     input_vid.upload(
         fn = reset_do_inversion,
         outputs = [do_inversion],
-        queue = False)
-    ).then(fn = preprocess_and_invert,
+        queue = False).then(fn = preprocess_and_invert,
           inputs = [input_vid,
                       frames,
                       latents,
