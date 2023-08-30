@@ -33,9 +33,9 @@ def preprocess_and_invert(video,
                           # save_dir: str = "latents",
                           steps: int = 500,
                           batch_size: int = 8,
-                          # save_steps: int = 50,
                           n_frames: int = 40,
-                          inversion_prompt:str = ''
+                          inversion_prompt:str = '',
+                          save_steps: int = 50,
               ):
 
     if do_inversion or randomize_seed:
@@ -132,6 +132,7 @@ with gr.Blocks(css="style.css") as demo:
                                           value=8, step=1, interactive=True)
                     n_frames = gr.Slider(label='Num frames', minimum=20, maximum=200,
                                           value=40, step=1, interactive=True)
+                    
                     
     input_vid.change(
         fn = reset_do_inversion,
