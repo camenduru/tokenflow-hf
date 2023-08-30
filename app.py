@@ -20,6 +20,20 @@ def randomize_seed_fn():
     
 def reset_do_inversion():
         return True
+
+def get_example():
+    case = [
+        [
+            'examples/wolf.mp4',     
+            
+             ],
+        [
+            'examples/woman-running.mp4',     
+            
+             ],
+
+ ]
+    return case
     
 def preprocess_and_invert(video,
                           frames,
@@ -161,6 +175,13 @@ with gr.Blocks(css="style.css") as demo:
                      do_inversion
               
           ])
+
+    gr.Examples(
+        examples=get_example(),
+        label='Examples',
+        inputs=[input_vid],
+        outputs=[input_vid]
+    )
 
 
 
