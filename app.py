@@ -93,7 +93,13 @@ with gr.Blocks(css="style.css") as demo:
         output_vid = gr.Video(label="Edited Video", interactive=False, elem_id="output_video")
         input_vid.style(height=365, width=365)
         output_vid.style(height=365, width=365)
-    
+
+
+    with gr.Row():
+            tar_prompt = gr.Textbox(
+                            label="Describe your edited video",
+                            max_lines=1, value=""
+                        )
     # with gr.Group(visible=False) as share_btn_container:
         # with gr.Group(elem_id="share-btn-container"):
         #     community_icon = gr.HTML(community_icon_html, visible=True)
