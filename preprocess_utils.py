@@ -219,7 +219,7 @@ class Preprocess(nn.Module):
         
         return_inverted_latents = self.config["frames"] is not None
         for i, t in enumerate(tqdm(timesteps)):
-            for b in range(0, latent_frames.shape[0], batch_size):
+            for b in range(0, latent_frames.shape[0], int(batch_size)):
                 x_batch = latent_frames[b:b + batch_size]
                 model_input = x_batch
                 cond_batch = cond.repeat(x_batch.shape[0], 1, 1)
@@ -320,5 +320,76 @@ class Preprocess(nn.Module):
         return self.frames, self.latents, self.total_inverted_latents, None
 
 
+def prep(opt):
+    # timesteps to save
+    if opt["sd_version"] == '2.1':
+        model_key = "stabilityai/stable-diffusion-2-1-base"
+    elif opt["sd_version"] == '2.0':
+        model_key = "stabilityai/stable-diffusion-2-base"
+    elif opt["sd_version"] == '1.5' or opt["sd_version"] == 'ControlNet':
+        model_key = "runwayml/stable-diffusion-v1-5"
+    elif opt["sd_version"] == 'depth':
+        model_key = "stabilityai/stable-diffusion-2-depth"
+    toy_scheduler = DDIMScheduler.from_pretrained(model_key, subfolder="scheduler")
+    toy_scheduler.set_timesteps(opt["save_steps"])
+    timesteps_to_save, num_inference_steps = get_timesteps(toy_scheduler, num_inference_steps=opt["save_steps"],
+                                                           strength=1.0,
+                                                           device=device)
+
+    seed_everything(opt["seed"])
+    if not opt["frames"]: # original non demo setting
+        save_path = os.path.join(opt["save_dir"],
+                                 f'sd_{opt["sd_version"]}',
+                                 Path(opt["data_path"]).stem,
+                                 f'steps_{opt["steps"]}',
+                                 f'nframes_{opt["n_frames"]}') 
+        os.makedirs(os.path.join(save_path, f'latents'), exist_ok=True)
+        add_dict_to_yaml_file(os.path.join(opt["save_dir"], 'inversion_prompts.yaml'), Path(opt["data_path"]).stem, opt["inversion_prompt"])    
+        # save inversion prompt in a txt file
+        with open(os.path.join(save_path, 'inversion_prompt.txt'), 'w') as f:
+            f.write(opt["inversion_prompt"])
+    else:
+        save_path = None
+    
+    model = Preprocess(device, opt)
+  
+    frames, latents, total_inverted_latents, rgb_reconstruction = model.extract_latents(
+                                         num_steps=model.config["steps"],
+                                         save_path=save_path,
+                                         batch_size=model.config["batch_size"],
+                                         timesteps_to_save=timesteps_to_save,
+                                         inversion_prompt=model.config["inversion_prompt"],
+    )
+
+    
+    return frames, latents, total_inverted_latents, rgb_reconstruction
+    # if not os.path.isdir(os.path.join(save_path, f'frames')):
+    #     os.mkdir(os.path.join(save_path, f'frames'))
+    # for i, frame in enumerate(recon_frames):
+    #     T.ToPILImage()(frame).save(os.path.join(save_path, f'frames', f'{i:05d}.png'))
+    # frames = (recon_frames * 255).to(torch.uint8).cpu().permute(0, 2, 3, 1)
+    # write_video(os.path.join(save_path, f'inverted.mp4'), frames, fps=10)
 
 
+# if __name__ == "__main__":
+#     device = 'cuda'
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--data_path', type=str,
+#                         default='data/woman-running.mp4') 
+#     parser.add_argument('--H', type=int, default=512, 
+#                         help='for non-square videos, we recommand using 672 x 384 or 384 x 672, aspect ratio 1.75')
+#     parser.add_argument('--W', type=int, default=512, 
+#                         help='for non-square videos, we recommand using 672 x 384 or 384 x 672, aspect ratio 1.75')
+#     parser.add_argument('--save_dir', type=str, default='latents')
+#     parser.add_argument('--sd_version', type=str, default='2.1', choices=['1.5', '2.0', '2.1', 'ControlNet', 'depth'],
+#                         help="stable diffusion version")
+#     parser.add_argument('--steps', type=int, default=500)
+#     parser.add_argument('--batch_size', type=int, default=40)
+#     parser.add_argument('--save_steps', type=int, default=50)
+#     parser.add_argument('--n_frames', type=int, default=40)
+#     parser.add_argument('--inversion_prompt', type=str, default='a woman running')
+#     opt = parser.parse_args()
+#     video_path = opt.data_path
+#     save_video_frames(video_path, img_size=(opt.H, opt.W))
+#     opt.data_path = os.path.join('data', Path(video_path).stem)
+#     prep(opt)
