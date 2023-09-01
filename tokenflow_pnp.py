@@ -14,7 +14,7 @@ from transformers import logging
 from diffusers import DDIMScheduler, StableDiffusionPipeline
 
 from tokenflow_utils import *
-from util import save_video, seed_everything
+from utils import save_video, seed_everything
 
 # suppress partial model loading warning
 logging.set_verbosity_error()
