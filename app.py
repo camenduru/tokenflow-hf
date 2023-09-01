@@ -1,25 +1,16 @@
 import gradio as gr
 import torch
-from transformers import CLIPTextModel, CLIPTokenizer, logging
-from diffusers import AutoencoderKL, UNet2DConditionModel, DDIMScheduler
+from diffusers import StableDiffusionPipeline, DDIMScheduler
 from utils import video_to_frames, add_dict_to_yaml_file, save_video, seed_everything
 # from diffusers.utils import export_to_video
 from tokenflow_pnp import TokenFlow
 from preprocess_utils import *
 from tokenflow_utils import *
-
 # load sd model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model_id = "stabilityai/stable-diffusion-2-1-base"
-
-scheduler = DDIMScheduler.from_pretrained(model_id, subfolder="scheduler")
-vae = AutoencoderKL.from_pretrained(model_id, subfolder="vae", revision="fp16",
-                                                 torch_dtype=torch.float16).to(device)
-tokenizer = CLIPTokenizer.from_pretrained(model_id, subfolder="tokenizer")
-text_encoder = CLIPTextModel.from_pretrained(model_id, subfolder="text_encoder", revision="fp16",
-                                                  torch_dtype=torch.float16).to(device)
-unet = UNet2DConditionModel.from_pretrained(model_id, subfolder="unet", revision="fp16",
-                                           torch_dtype=torch.float16).to(device)
+# model_id = "stabilityai/stable-diffusion-2-1-base"
+# inv_pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16).to(device)
+# inv_pipe.scheduler = DDIMScheduler.from_pretrained(model_id, subfolder="scheduler")
 
 def randomize_seed_fn():
     seed = random.randint(0, np.iinfo(np.int32).max)
@@ -74,12 +65,7 @@ def prep(config):
     else:
         save_path = None
     
-    model = Preprocess(device, config,
-                      vae=vae,
-                      text_encoder=text_encoder,
-                      scheduler=scheduler,
-                      tokenizer=tokenizer,
-                      unet=unet)
+    model = Preprocess(device, config)
     print(type(model.config["batch_size"]))
     frames, latents, total_inverted_latents, rgb_reconstruction = model.extract_latents(
                                          num_steps=model.config["steps"],
