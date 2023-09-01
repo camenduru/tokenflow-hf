@@ -315,4 +315,4 @@ with gr.Blocks(css="style.css") as demo:
 
 
 demo.queue()
-demo.launch(share=True)
+demo.launch()
