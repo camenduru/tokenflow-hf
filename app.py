@@ -1,7 +1,7 @@
 import gradio as gr
 import torch
 from diffusers import StableDiffusionPipeline, DDIMScheduler
-from utils import video_to_frames, add_dict_to_yaml_file, save_video
+from utils import video_to_frames, add_dict_to_yaml_file, save_video, seed_everything
 # from diffusers.utils import export_to_video
 from tokenflow_pnp import TokenFlow
 from preprocess_utils import *
