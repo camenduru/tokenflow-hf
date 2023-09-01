@@ -1,7 +1,7 @@
 import gradio as gr
 import torch
 from diffusers import StableDiffusionPipeline, DDIMScheduler
-# from utils import *
+from utils import video_to_frames, add_dict_to_yaml_file, save_video
 from diffusers.utils import export_to_video
 
 # load sd model
