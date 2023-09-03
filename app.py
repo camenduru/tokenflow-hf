@@ -10,6 +10,7 @@ from tokenflow_utils import *
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_id = "stabilityai/stable-diffusion-2-1-base"
 
+# components for the Preprocessor
 scheduler = DDIMScheduler.from_pretrained(model_id, subfolder="scheduler")
 vae = AutoencoderKL.from_pretrained(model_id, subfolder="vae", revision="fp16",
                                                  torch_dtype=torch.float16).to(device)
@@ -18,6 +19,10 @@ text_encoder = CLIPTextModel.from_pretrained(model_id, subfolder="text_encoder",
                                                   torch_dtype=torch.float16).to(device)
 unet = UNet2DConditionModel.from_pretrained(model_id, subfolder="unet", revision="fp16",
                                            torch_dtype=torch.float16).to(device)
+
+# pipe for TokenFlow
+pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16).to("cuda")
+pipe.enable_xformers_memory_efficient_attention()
 
 def randomize_seed_fn():
     seed = random.randint(0, np.iinfo(np.int32).max)
@@ -200,7 +205,7 @@ def edit_with_pnp(input_video,
     seed_everything(seed)
     
     
-    editor = TokenFlow(config=config, frames=frames.value, inverted_latents=inverted_latents.value)
+    editor = TokenFlow(config=config,pipe=pipe, frames=frames.value, inverted_latents=inverted_latents.value)
     edited_frames = editor.edit_video()
 
     save_video(edited_frames, 'tokenflow_PnP_fps_30.mp4', fps=n_fps)
