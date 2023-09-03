@@ -253,7 +253,7 @@ with gr.Blocks(css="style.css") as demo:
 
     with gr.Accordion("Advanced Options", open=False):
         with gr.Tabs() as tabs:
-            with gr.TabItem('General options', id=2):
+            with gr.TabItem('General options'):
                 with gr.Row():
                     with gr.Column(min_width=100):
                         seed = gr.Number(value=0, precision=0, label="Seed", interactive=True)
@@ -262,8 +262,6 @@ with gr.Blocks(css="style.css") as demo:
                                               value=7.5, step=0.5, interactive=True)
                         steps = gr.Slider(label='Inversion steps', minimum=100, maximum=500,
                                               value=500, step=1, interactive=True)
-                        n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
-                                              value=50, step=1, interactive=True)
                         
                     with gr.Column(min_width=100):
                         inversion_prompt = gr.Textbox(lines=1, label="Inversion prompt", interactive=True, placeholder="")
@@ -271,9 +269,12 @@ with gr.Blocks(css="style.css") as demo:
                                               value=8, step=1, interactive=True)
                         n_frames = gr.Slider(label='Num frames', minimum=20, maximum=200,
                                               value=40, step=1, interactive=True)
-                        pnp_attn_t = gr.Slider(label='pnp attention threshold', minimum=0, maximum=1,
+                        
+            with gr.TabItem('Plug-and-Plat Parameters'):
+                 with gr.Column(min_width=100):
+                    pnp_attn_t = gr.Slider(label='pnp attention threshold', minimum=0, maximum=1,
                                               value=0.5, step=0.5, interactive=True)
-                        pnp_f_t = gr.Slider(label='pnp feature threshold', minimum=0, maximum=1,
+                    pnp_f_t = gr.Slider(label='pnp feature threshold', minimum=0, maximum=1,
                                               value=0.8, step=0.05, interactive=True)
                     
                     
