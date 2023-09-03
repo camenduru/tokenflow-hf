@@ -304,12 +304,12 @@ with gr.Blocks(css="style.css") as demo:
                                  outputs = [output_video, frames, latents, inverted_latents, do_inversion]
                                 )
 
-     gr.Examples(
-         examples=get_example(),
-         label='Examples',
-         inputs=[input_vid],
-         outputs=[input_vid]
-     )
+    gr.Examples(
+        examples=get_example(),
+        label='Examples',
+        inputs=[input_vid],
+        outputs=[input_vid]
+    )
 
 
 
