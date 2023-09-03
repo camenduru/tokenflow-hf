@@ -269,6 +269,8 @@ with gr.Blocks(css="style.css") as demo:
                                               value=8, step=1, interactive=True)
                         n_frames = gr.Slider(label='Num frames', minimum=20, maximum=200,
                                               value=40, step=1, interactive=True)
+                        n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
+                                              value=50, step=1, interactive=True)
                         
             with gr.TabItem('Plug-and-Plat Parameters'):
                  with gr.Column(min_width=100):
