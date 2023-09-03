@@ -64,9 +64,11 @@ def prep(config):
         model_key = "stabilityai/stable-diffusion-2-depth"
     toy_scheduler = DDIMScheduler.from_pretrained(model_key, subfolder="scheduler")
     toy_scheduler.set_timesteps(config["save_steps"])
+    print("config[save_steps]", config["save_steps"])
     timesteps_to_save, num_inference_steps = get_timesteps(toy_scheduler, num_inference_steps=config["save_steps"],
                                                            strength=1.0,
                                                            device=device)
+    print("YOOOO timesteps to save", timesteps_to_save)
 
     # seed_everything(config["seed"])
     if not config["frames"]: # original non demo setting
@@ -109,7 +111,7 @@ def preprocess_and_invert(input_video,
                           randomize_seed,
                           do_inversion,
                           # save_dir: str = "latents",
-                          steps: int = 500,
+                          steps,
                           n_timesteps = 50,
                           batch_size: int = 8,
                           n_frames: int = 40,
@@ -119,7 +121,7 @@ def preprocess_and_invert(input_video,
     sd_version = "2.1"
     height = 512
     weidth: int = 512
-
+    print("n timesteps", n_timesteps)
     if do_inversion or randomize_seed:
         preprocess_config = {}
         preprocess_config['H'] = height
@@ -128,7 +130,7 @@ def preprocess_and_invert(input_video,
         preprocess_config['sd_version'] = sd_version
         preprocess_config['steps'] = steps
         preprocess_config['batch_size'] = batch_size
-        preprocess_config['save_steps'] = n_timesteps
+        preprocess_config['save_steps'] = int(n_timesteps)
         preprocess_config['n_frames'] = n_frames
         preprocess_config['seed'] = seed
         preprocess_config['inversion_prompt'] = inversion_prompt
@@ -141,6 +143,8 @@ def preprocess_and_invert(input_video,
         seed_everything(seed)
         
         frames, latents, total_inverted_latents, rgb_reconstruction = prep(preprocess_config)
+        print(total_inverted_latents.keys())
+        print(len(total_inverted_latents.keys()))
         frames = gr.State(value=frames)
         latents = gr.State(value=latents)
         inverted_latents = gr.State(value=total_inverted_latents)
@@ -173,7 +177,7 @@ def edit_with_pnp(input_video,
  
     config["sd_version"] = "2.1"
     config["device"] = device
-    config["n_timesteps"] = n_timesteps
+    config["n_timesteps"] = int(n_timesteps)
     config["n_frames"] = n_frames
     config["batch_size"] = batch_size
     config["guidance_scale"] = gudiance_scale
@@ -194,6 +198,7 @@ def edit_with_pnp(input_video,
                           randomize_seed,
                           do_inversion,
                           steps,
+                          n_timesteps,
                           batch_size,
                           n_frames,
                           inversion_prompt)
@@ -272,7 +277,7 @@ with gr.Blocks(css="style.css") as demo:
                         randomize_seed = gr.Checkbox(label='Randomize seed', value=False)
                         gudiance_scale = gr.Slider(label='Guidance Scale', minimum=1, maximum=30,
                                               value=7.5, step=0.5, interactive=True)
-                        steps = gr.Slider(label='Inversion steps', minimum=100, maximum=500,
+                        steps = gr.Slider(label='Inversion steps', minimum=10, maximum=500,
                                               value=500, step=1, interactive=True)
                         
                     with gr.Column(min_width=100):
@@ -282,7 +287,7 @@ with gr.Blocks(css="style.css") as demo:
                         n_frames = gr.Slider(label='Num frames', minimum=2, maximum=200,
                                               value=24, step=1, interactive=True)
                         n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
-                                              value=30, step=1, interactive=True)
+                                              value=50, step=25, interactive=True)
                         n_fps = gr.Slider(label='Frames per second', minimum=1, maximum=60,
                                               value=10, step=1, interactive=True)
                         
@@ -350,8 +355,6 @@ with gr.Blocks(css="style.css") as demo:
         inputs=[input_video],
         outputs=[output_video]
     )
-
-
 
 demo.queue()
 demo.launch()
