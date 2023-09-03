@@ -213,8 +213,11 @@ def edit_with_pnp(input_video,
 
 intro = """
 <h1 style="font-weight: 1400; text-align: center; margin-bottom: 7px;">
-   TokenFlow
+   TokenFlow - <small>Temporally consistent video editing</small>
 </h1>
+<span>[<a href="#">Paper</a>], [<a href="#">Project page</a>], [<a href="#">GitHub</a>]</span>
+<div style="display:flex">Each edit takes ~5 min <a href="https://huggingface.co/weizmannscience/tokenflow?duplicate=true" target="_blank">
+<img style="margin-top: 0em; margin-bottom: 0em" src="https://bit.ly/3CWLGkA" alt="Duplicate Space"></a></div>
 """
 
 
