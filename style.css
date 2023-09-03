@@ -28,9 +28,7 @@ input[type='range'] {
 .container {
   max-width: 730px;
   margin: auto;
-  padding-top: 1.5rem;
 }
-
 
 .gr-button:focus {
   border-color: rgb(147 197 253 / var(--tw-border-opacity));
