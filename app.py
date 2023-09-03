@@ -161,7 +161,8 @@ def edit_with_pnp(input_video,
                   n_timesteps: int = 50,
                   gudiance_scale: float = 7.5,
                   inversion_prompt: str = "", #needs to be the same as for preprocess
-                  n_fps: int = 10
+                  n_fps: int = 10,
+                  progress=gr.Progress(track_tqdm=True)
 ):
     config = {}
  
