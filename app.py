@@ -160,7 +160,8 @@ def edit_with_pnp(input_video,
                   n_frames: int = 40,#needs to be the same as for preprocess
                   n_timesteps: int = 50,
                   gudiance_scale: float = 7.5,
-                  inversion_prompt: str = ""#needs to be the same as for preprocess
+                  inversion_prompt: str = "", #needs to be the same as for preprocess
+                  n_fps: int = 10
 ):
     config = {}
  
@@ -201,7 +202,7 @@ def edit_with_pnp(input_video,
     editor = TokenFlow(config=config, frames=frames.value, inverted_latents=inverted_latents.value)
     edited_frames = editor.edit_video()
 
-    save_video(edited_frames, 'tokenflow_PnP_fps_30.mp4', fps=30)
+    save_video(edited_frames, 'tokenflow_PnP_fps_30.mp4', fps=n_fps)
     # path = export_to_video(edited_frames)
     return 'tokenflow_PnP_fps_30.mp4', frames, latents, inverted_latents, do_inversion
 
@@ -268,11 +269,13 @@ with gr.Blocks(css="style.css") as demo:
                         batch_size = gr.Slider(label='Batch size', minimum=1, maximum=10,
                                               value=8, step=1, interactive=True)
                         n_frames = gr.Slider(label='Num frames', minimum=20, maximum=200,
-                                              value=40, step=1, interactive=True)
+                                              value=30, step=1, interactive=True)
                         n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
                                               value=50, step=1, interactive=True)
+                        n_fps = gr.Slider(label='Frames per second', minimum=1, maximum=60,
+                                              value=10, step=1, interactive=True)
                         
-            with gr.TabItem('Plug-and-Plat Parameters'):
+            with gr.TabItem('Plug-and-Play Parameters'):
                  with gr.Column(min_width=100):
                     pnp_attn_t = gr.Slider(label='pnp attention threshold', minimum=0, maximum=1,
                                               value=0.5, step=0.5, interactive=True)
@@ -324,7 +327,8 @@ with gr.Blocks(css="style.css") as demo:
                               n_frames,
                               n_timesteps,
                               gudiance_scale,
-                              inversion_prompt ],
+                              inversion_prompt,
+                              n_fps ],
                                  outputs = [output_video, frames, latents, inverted_latents, do_inversion]
                                 )
 
