@@ -105,6 +105,7 @@ def preprocess_and_invert(input_video,
                           do_inversion,
                           # save_dir: str = "latents",
                           steps: int = 500,
+                          n_timesteps = 50,
                           batch_size: int = 8,
                           n_frames: int = 40,
                           inversion_prompt:str = '',
@@ -113,7 +114,6 @@ def preprocess_and_invert(input_video,
     sd_version = "2.1"
     height = 512
     weidth: int = 512
-    save_steps = 50
 
     if do_inversion or randomize_seed:
         preprocess_config = {}
@@ -123,7 +123,7 @@ def preprocess_and_invert(input_video,
         preprocess_config['sd_version'] = sd_version
         preprocess_config['steps'] = steps
         preprocess_config['batch_size'] = batch_size
-        preprocess_config['save_steps'] = save_steps
+        preprocess_config['save_steps'] = n_timesteps
         preprocess_config['n_frames'] = n_frames
         preprocess_config['seed'] = seed
         preprocess_config['inversion_prompt'] = inversion_prompt
@@ -306,6 +306,7 @@ with gr.Blocks(css="style.css") as demo:
                       randomize_seed,
                       do_inversion,
                       steps,
+                      n_timesteps,
                       batch_size,
                       n_frames,
                       inversion_prompt
