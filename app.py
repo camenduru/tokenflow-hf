@@ -307,8 +307,8 @@ with gr.Blocks(css="style.css") as demo:
     gr.Examples(
         examples=get_example(),
         label='Examples',
-        inputs=[input_vid],
-        outputs=[input_vid]
+        inputs=[input_video],
+        outputs=[output_video]
     )
 
 
