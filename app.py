@@ -217,7 +217,7 @@ intro = """
 </h1>
 <span style="text-align:center">[<a target="_blank" href="https://huggingface.co/papers/2307.10373">Paper</a>], [<a target="_blank" href="https://diffusion-tokenflow.github.io">Project page</a>], [<a target="_blank" href="https://github.com/omerbt/TokenFlow">GitHub</a>]</span>
 <div style="display:flex; justify-content: center;margin-top: 0.5em">Each edit takes ~5 min <a href="https://huggingface.co/weizmannscience/tokenflow?duplicate=true" target="_blank">
-<img style="margin-top: 0em; margin-bottom: 0em" src="https://bit.ly/3CWLGkA" alt="Duplicate Space"></a></div>
+<img style="margin-top: 0em; margin-bottom: 0em; margin-left: 0.4em" src="https://bit.ly/3CWLGkA" alt="Duplicate Space"></a></div>
 """
 
 
