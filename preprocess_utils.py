@@ -10,7 +10,7 @@ import torch.nn as nn
 import argparse
 from torchvision.io import write_video
 from pathlib import Path
-from utils import *
+from util import *
 import torchvision.transforms as T
 
 
@@ -25,7 +25,7 @@ def get_timesteps(scheduler, num_inference_steps, strength, device):
 
 
 class Preprocess(nn.Module):
-    def __init__(self, device, opt, hf_key=None):
+    def __init__(self, device, opt, vae, tokenizer, text_encoder, unet,scheduler, hf_key=None):
         super().__init__()
 
         self.device = device
@@ -47,15 +47,23 @@ class Preprocess(nn.Module):
             model_key = "stabilityai/stable-diffusion-2-depth"
         else:
             raise ValueError(f'Stable-diffusion version {self.sd_version} not supported.')
+        
         self.model_key = model_key
+        
         # Create model
-        self.vae = AutoencoderKL.from_pretrained(model_key, subfolder="vae", revision="fp16",
-                                                 torch_dtype=torch.float16).to(self.device)
-        self.tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer")
-        self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder", revision="fp16",
-                                                          torch_dtype=torch.float16).to(self.device)
-        self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet", revision="fp16",
-                                                   torch_dtype=torch.float16).to(self.device)
+        # self.vae = AutoencoderKL.from_pretrained(model_key, subfolder="vae", revision="fp16",
+        #                                          torch_dtype=torch.float16).to(self.device)
+        # self.tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer")
+        # self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder", revision="fp16",
+        #                                                   torch_dtype=torch.float16).to(self.device)
+        # self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet", revision="fp16",
+        #                                            torch_dtype=torch.float16).to(self.device)
+        
+        self.vae = vae
+        self.tokenizer = tokenizer
+        self.text_encoder = text_encoder
+        self.unet = unet
+        self.scheduler=scheduler
         self.total_inverted_latents = {}
         
         self.paths, self.frames, self.latents = self.get_data(self.config["data_path"], self.config["n_frames"])
@@ -74,11 +82,12 @@ class Preprocess(nn.Module):
             self.canny_cond = self.get_canny_cond()
         elif self.sd_version == 'depth':
             self.depth_maps = self.prepare_depth_maps()
-        self.scheduler = DDIMScheduler.from_pretrained(model_key, subfolder="scheduler")
+        self.scheduler = scheduler
         
-        # self.unet.enable_xformers_memory_efficient_attention()
+        self.unet.enable_xformers_memory_efficient_attention()
         print(f'[INFO] loaded stable diffusion!')
-        
+    
+    
     @torch.no_grad()   
     def prepare_depth_maps(self, model_type='DPT_Large', device='cuda'):
         depth_maps = []
@@ -363,33 +372,4 @@ def prep(opt):
 
     
     return frames, latents, total_inverted_latents, rgb_reconstruction
-    # if not os.path.isdir(os.path.join(save_path, f'frames')):
-    #     os.mkdir(os.path.join(save_path, f'frames'))
-    # for i, frame in enumerate(recon_frames):
-    #     T.ToPILImage()(frame).save(os.path.join(save_path, f'frames', f'{i:05d}.png'))
-    # frames = (recon_frames * 255).to(torch.uint8).cpu().permute(0, 2, 3, 1)
-    # write_video(os.path.join(save_path, f'inverted.mp4'), frames, fps=10)
 
-
-# if __name__ == "__main__":
-#     device = 'cuda'
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('--data_path', type=str,
-#                         default='data/woman-running.mp4') 
-#     parser.add_argument('--H', type=int, default=512, 
-#                         help='for non-square videos, we recommand using 672 x 384 or 384 x 672, aspect ratio 1.75')
-#     parser.add_argument('--W', type=int, default=512, 
-#                         help='for non-square videos, we recommand using 672 x 384 or 384 x 672, aspect ratio 1.75')
-#     parser.add_argument('--save_dir', type=str, default='latents')
-#     parser.add_argument('--sd_version', type=str, default='2.1', choices=['1.5', '2.0', '2.1', 'ControlNet', 'depth'],
-#                         help="stable diffusion version")
-#     parser.add_argument('--steps', type=int, default=500)
-#     parser.add_argument('--batch_size', type=int, default=40)
-#     parser.add_argument('--save_steps', type=int, default=50)
-#     parser.add_argument('--n_frames', type=int, default=40)
-#     parser.add_argument('--inversion_prompt', type=str, default='a woman running')
-#     opt = parser.parse_args()
-#     video_path = opt.data_path
-#     save_video_frames(video_path, img_size=(opt.H, opt.W))
-#     opt.data_path = os.path.join('data', Path(video_path).stem)
-#     prep(opt)
