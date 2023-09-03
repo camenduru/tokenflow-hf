@@ -275,9 +275,9 @@ with gr.Blocks(css="style.css") as demo:
                         batch_size = gr.Slider(label='Batch size', minimum=1, maximum=10,
                                               value=8, step=1, interactive=True)
                         n_frames = gr.Slider(label='Num frames', minimum=20, maximum=200,
-                                              value=30, step=1, interactive=True)
+                                              value=24, step=1, interactive=True)
                         n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
-                                              value=50, step=1, interactive=True)
+                                              value=30, step=1, interactive=True)
                         n_fps = gr.Slider(label='Frames per second', minimum=1, maximum=60,
                                               value=10, step=1, interactive=True)
                         
