@@ -24,6 +24,7 @@ VAE_BATCH_SIZE = 10
 
 class TokenFlow(nn.Module):
     def __init__(self, config, 
+                 pipe,
                  frames=None,
                 # latents = None,
                 inverted_latents = None):
@@ -47,8 +48,8 @@ class TokenFlow(nn.Module):
         # Create SD models
         print('Loading SD model')
 
-        pipe = StableDiffusionPipeline.from_pretrained(model_key, torch_dtype=torch.float16).to("cuda")
-        pipe.enable_xformers_memory_efficient_attention()
+        # pipe = StableDiffusionPipeline.from_pretrained(model_key, torch_dtype=torch.float16).to("cuda")
+        # pipe.enable_xformers_memory_efficient_attention()
 
         self.vae = pipe.vae
         self.tokenizer = pipe.tokenizer
