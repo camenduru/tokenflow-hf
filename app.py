@@ -27,6 +27,15 @@ def get_example():
         [
             'examples/woman-running.mp4',     
         ],
+        [
+            'examples/cutting_bread.mp4',
+        ],
+        [
+            'examples/running_dog.mp4',
+        ],
+        [
+            'examples/rocket_kittens.mp4'
+        ]
     ]
     return case
 
