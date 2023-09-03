@@ -274,7 +274,7 @@ with gr.Blocks(css="style.css") as demo:
                         inversion_prompt = gr.Textbox(lines=1, label="Inversion prompt", interactive=True, placeholder="")
                         batch_size = gr.Slider(label='Batch size', minimum=1, maximum=10,
                                               value=8, step=1, interactive=True)
-                        n_frames = gr.Slider(label='Num frames', minimum=20, maximum=200,
+                        n_frames = gr.Slider(label='Num frames', minimum=2, maximum=200,
                                               value=24, step=1, interactive=True)
                         n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
                                               value=30, step=1, interactive=True)
