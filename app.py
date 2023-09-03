@@ -205,7 +205,7 @@ def edit_with_pnp(input_video,
     seed_everything(seed)
     
     
-    editor = TokenFlow(config=config,pipe=pipe, frames=frames.value, inverted_latents=inverted_latents.value)
+    editor = TokenFlow(config=config,pipe=tokenflow_pipe, frames=frames.value, inverted_latents=inverted_latents.value)
     edited_frames = editor.edit_video()
 
     save_video(edited_frames, 'tokenflow_PnP_fps_30.mp4', fps=n_fps)
