@@ -17,21 +17,18 @@ def randomize_seed_fn():
     return seed
     
 def reset_do_inversion():
-        return True
+    return True
 
- def get_example():
-     case = [
-         [
-             'examples/wolf.mp4',     
-            
-              ],
-         [
-             'examples/woman-running.mp4',     
-            
-              ],
-
-  ]
-     return case
+def get_example():
+    case = [
+        [
+            'examples/wolf.mp4',     
+        ],
+        [
+            'examples/woman-running.mp4',     
+        ],
+    ]
+    return case
 
 
 def prep(config):
