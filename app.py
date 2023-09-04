@@ -254,6 +254,7 @@ def edit_with_pnp(input_video,
                           batch_size,
                           n_frames,
                           n_seconds,
+                          n_fps_input,
                           inversion_prompt)
         config["batch_size"] = batch_size
         config["n_frames"] = n_frames
@@ -294,7 +295,8 @@ with gr.Blocks(css="style.css") as demo:
     inverted_latents = gr.State()
     latents = gr.State()
     do_inversion = gr.State(value=True)
-
+    n_fps_input = gr.State()
+    
     with gr.Row():
         input_video = gr.Video(label="Input Video", interactive=True, elem_id="input_video")
         output_video = gr.Video(label="Edited Video", interactive=False, elem_id="output_video")
@@ -342,7 +344,7 @@ with gr.Blocks(css="style.css") as demo:
                                               minimum=1, maximum=2, step=1)
                         n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
                                               value=50, step=25, interactive=True)
-                        n_fps_input = gr.Slider(label="Input frames per second", value=40, minimum=1, maximum=120)
+                        #n_fps_input = gr.Slider(label="Input frames per second", value=40, minimum=1, maximum=120)
                         n_fps = gr.Slider(label='Output frames per second', minimum=1, maximum=60,
                                               value=10, step=1, interactive=True)
                         
