@@ -122,7 +122,9 @@ def calculate_fps(input_video, batch_size):
         
     if frames_to_process % batch_size != 0:
         batch_size = largest_divisor(batch_size)
-
+    print("total vid duration", total_vid_duration)
+    print("frames to process", frames_to_process)
+    print("batch size", batch_size)
     return frames, batch_size, frames_to_process
 
 def preprocess_and_invert(input_video,
