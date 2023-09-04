@@ -44,9 +44,6 @@ def get_example():
         ],
         [
             'examples/running_dog.mp4',
-        ],
-        [
-            'examples/rocket_kittens.mp4'
         ]
     ]
     return case
