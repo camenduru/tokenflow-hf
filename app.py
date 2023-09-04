@@ -6,7 +6,6 @@ from utils import video_to_frames, add_dict_to_yaml_file, save_video, seed_every
 from tokenflow_pnp import TokenFlow
 from preprocess_utils import *
 from tokenflow_utils import *
-import math
 # load sd model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_id = "stabilityai/stable-diffusion-2-1-base"
@@ -52,11 +51,6 @@ def get_example():
     ]
     return case
 
-def largest_divisor(n):
-    for i in range(2, int(math.sqrt(n)) + 1):
-        if n % i == 0:
-            return n // i
-    return n
 
 def prep(config):
     # timesteps to save
@@ -108,26 +102,7 @@ def prep(config):
 
     
     return frames, latents, total_inverted_latents, rgb_reconstruction
-
-
-def calculate_fps(input_video, batch_size):
-    frames, frames_per_second = video_to_frames(input_video)
-    #total_vid_frames = len(frames)
-    #total_vid_duration = total_vid_frames/frames_per_second
-        
-    #if(total_vid_duration < 1):
-    #    frames_to_process = total_vid_frames
-    #else:
-    #    frames_to_process = int(frames_per_second/n_seconds)
-    #    
-    #if frames_to_process % batch_size != 0:
-    #    batch_size = largest_divisor(batch_size)
-    #print("total vid duration", total_vid_duration)
-    #print("frames to process", frames_to_process)
-    #print("batch size", batch_size)
-    print("fps", frames_per_second)
-    return frames, frames_per_second
-
+    
 def preprocess_and_invert(input_video,
                           frames,
                           latents,
@@ -140,8 +115,6 @@ def preprocess_and_invert(input_video,
                           n_timesteps = 50,
                           batch_size: int = 8,
                           n_frames: int = 40,
-                          n_seconds: int = 1,
-                          n_fps_input: int = 40,
                           inversion_prompt:str = '',
                           
               ):
@@ -161,31 +134,10 @@ def preprocess_and_invert(input_video,
         preprocess_config['n_frames'] = n_frames
         preprocess_config['seed'] = seed
         preprocess_config['inversion_prompt'] = inversion_prompt
-        not_processed = False
-        if(not frames):
-            preprocess_config['frames'],n_fps_input = video_to_frames(input_video)
-            not_processed = True
-        else:
-            preprocess_config['frames'] = frames
-        
-        print("pre-process fps ", n_fps_input)
+        preprocess_config['frames'] = video_to_frames(input_video)
         preprocess_config['data_path'] = input_video.split(".")[0]
         
-        total_vid_frames = len(preprocess_config['frames'])
-        print("total frames", total_vid_frames)
-        total_vid_duration = total_vid_frames/n_fps_input
-            
-        if(total_vid_duration < 1):
-            preprocess_config['n_frames'] = total_vid_frames
-        else:
-            preprocess_config['n_frames'] = int(n_fps_input/n_seconds)
-            
-        if preprocess_config['n_frames'] % batch_size != 0:
-            preprocess_config['batch_size'] = largest_divisor(batch_size)
 
-        print("Running with batch size of ", preprocess_config['batch_size'])
-        print("Total vid frames", preprocess_config['n_frames'])
-        
         if randomize_seed:
             seed = randomize_seed_fn()
         seed_everything(seed)
@@ -198,7 +150,7 @@ def preprocess_and_invert(input_video,
         inverted_latents = gr.State(value=total_inverted_latents)
         do_inversion = False
    
-    return frames, latents, inverted_latents, do_inversion, preprocess_config['batch_size'], preprocess_config['n_frames']
+    return frames, latents, inverted_latents, do_inversion
 
 
 def edit_with_pnp(input_video,
@@ -215,8 +167,6 @@ def edit_with_pnp(input_video,
                   pnp_f_t: float = 0.8,
                   batch_size: int = 8, #needs to be the same as for preprocess
                   n_frames: int = 40,#needs to be the same as for preprocess
-                  n_seconds: int = 1,
-                  n_fps_input: int = 40,
                   n_timesteps: int = 50,
                   gudiance_scale: float = 7.5,
                   inversion_prompt: str = "", #needs to be the same as for preprocess
@@ -236,12 +186,10 @@ def edit_with_pnp(input_video,
     config["pnp_attn_t"] = pnp_attn_t
     config["pnp_f_t"] = pnp_f_t
     config["pnp_inversion_prompt"] = inversion_prompt
-
-    print("Running with batch size of ", config['batch_size'])
-    print("Total vid frames", config['n_frames'])
+    
     
     if do_inversion:
-        frames, latents, inverted_latents, do_inversion, batch_size, n_frames = preprocess_and_invert(
+        frames, latents, inverted_latents, do_inversion =  preprocess_and_invert(
                           input_video,
                           frames,
                           latents,
@@ -253,11 +201,7 @@ def edit_with_pnp(input_video,
                           n_timesteps,
                           batch_size,
                           n_frames,
-                          n_seconds,
-                          n_fps_input,
                           inversion_prompt)
-        config["batch_size"] = batch_size
-        config["n_frames"] = n_frames
         do_inversion = False
         
     
@@ -277,6 +221,7 @@ def edit_with_pnp(input_video,
 # demo #
 ########
 
+
 intro = """
 <div style="text-align:center">
 <h1 style="font-weight: 1400; text-align: center; margin-bottom: 7px;">
@@ -288,6 +233,8 @@ intro = """
 </div>
 """
 
+
+
 with gr.Blocks(css="style.css") as demo:
     
     gr.HTML(intro)
@@ -295,8 +242,7 @@ with gr.Blocks(css="style.css") as demo:
     inverted_latents = gr.State()
     latents = gr.State()
     do_inversion = gr.State(value=True)
-    n_fps_input = gr.State()
-    
+
     with gr.Row():
         input_video = gr.Video(label="Input Video", interactive=True, elem_id="input_video")
         output_video = gr.Video(label="Edited Video", interactive=False, elem_id="output_video")
@@ -336,18 +282,14 @@ with gr.Blocks(css="style.css") as demo:
                         
                     with gr.Column(min_width=100):
                         inversion_prompt = gr.Textbox(lines=1, label="Inversion prompt", interactive=True, placeholder="")
-                        batch_size = gr.Slider(label='Batch size', minimum=1, maximum=100,
-                                              value=8, step=1, interactive=True, visible=False)
+                        batch_size = gr.Slider(label='Batch size', minimum=1, maximum=10,
+                                              value=8, step=1, interactive=True)
                         n_frames = gr.Slider(label='Num frames', minimum=2, maximum=200,
-                                              value=24, step=1, interactive=True, visible=False)
-                        n_seconds = gr.Slider(label='Num seconds', info="How many seconds of your video to process",
-                                              minimum=1, maximum=2, step=1)
+                                              value=24, step=1, interactive=True)
                         n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
                                               value=50, step=25, interactive=True)
-                        #n_fps_input = gr.Slider(label="Input frames per second", value=40, minimum=1, maximum=120)
-                        n_fps = gr.Slider(label='Output frames per second', minimum=1, maximum=60,
+                        n_fps = gr.Slider(label='Frames per second', minimum=1, maximum=60,
                                               value=10, step=1, interactive=True)
-                        
                         
             with gr.TabItem('Plug-and-Play Parameters'):
                  with gr.Column(min_width=100):
@@ -382,7 +324,7 @@ with gr.Blocks(css="style.css") as demo:
     input_video.upload(
         fn = reset_do_inversion,
         outputs = [do_inversion],
-        queue = False).then(fn = calculate_fps, inputs=[input_video], outputs=[frames, n_fps_input], queue=False).then(fn = preprocess_and_invert,
+        queue = False).then(fn = preprocess_and_invert,
           inputs = [input_video,
                       frames,
                       latents,
@@ -394,19 +336,14 @@ with gr.Blocks(css="style.css") as demo:
                       n_timesteps,
                       batch_size,
                       n_frames,
-                      n_seconds,
-                      n_fps_input,
                       inversion_prompt
           ],
           outputs = [frames,
                      latents,
                      inverted_latents,
-                     do_inversion,
-                     batch_size,
-                     n_frames
+                     do_inversion
+              
           ])
-    
-    input_video.change(fn = calculate_fps, inputs=[input_video], outputs=[frames, n_fps_input], queue=False)
     
     run_button.click(fn = edit_with_pnp,
                      inputs = [input_video,
@@ -422,8 +359,6 @@ with gr.Blocks(css="style.css") as demo:
                               pnp_f_t,
                               batch_size,
                               n_frames,
-                              n_seconds,
-                              n_fps_input,
                               n_timesteps,
                               gudiance_scale,
                               inversion_prompt,

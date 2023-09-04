@@ -16,7 +16,7 @@ from kornia.utils.grid import create_meshgrid
 import cv2
 
 def save_video_frames(video_path, img_size=(512,512)):
-    video, _,  = read_video(video_path, output_format="TCHW")
+    video, _, _ = read_video(video_path, output_format="TCHW")
     # rotate video -90 degree if video is .mov format. this is a weird bug in torchvision
     if video_path.endswith('.mov'):
         video = T.functional.rotate(video, -90)
@@ -29,8 +29,7 @@ def save_video_frames(video_path, img_size=(512,512)):
         image_resized.save(f'data/{video_name}/{ind}.png')
         
 def video_to_frames(video_path, img_size=(512,512)):
-    video, _, video_info = read_video(video_path, output_format="TCHW")
-    
+    video, _, _ = read_video(video_path, output_format="TCHW")
     # rotate video -90 degree if video is .mov format. this is a weird bug in torchvision
     if video_path.endswith('.mov'):
         video = T.functional.rotate(video, -90)
@@ -40,19 +39,10 @@ def video_to_frames(video_path, img_size=(512,512)):
     for i in range(len(video)):
         ind = str(i).zfill(5)
         image = T.ToPILImage()(video[i])
-        
-        # get new height and width to maintain aspect ratio
-        height, width = image.size
-        new_height = math.floor(img_size[0] * height / width)
-        new_width  = math.floor(img_size[1] * width / height)
-        
-        # pad
-        image = Image.new(image.mode, (new_width, new_height), (0, 0, 0))
-        
         image_resized = image.resize((img_size),  resample=Image.Resampling.LANCZOS)
         # image_resized.save(f'data/{video_name}/{ind}.png')
         frames.append(image_resized)
-    return frames, video_info["video_fps"]
+    return frames
 
 def add_dict_to_yaml_file(file_path, key, value):
     data = {}
