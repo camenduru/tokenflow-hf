@@ -156,7 +156,7 @@ def preprocess_and_invert(input_video,
         preprocess_config['steps'] = steps
         preprocess_config['batch_size'] = batch_size
         preprocess_config['save_steps'] = int(n_timesteps)
-        #preprocess_config['n_frames'] = n_frames
+        preprocess_config['n_frames'] = n_frames
         preprocess_config['seed'] = seed
         preprocess_config['inversion_prompt'] = inversion_prompt
         not_processed = False
