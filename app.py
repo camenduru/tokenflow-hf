@@ -144,12 +144,12 @@ def preprocess_and_invert(input_video,
         preprocess_config['frames'], frames_per_second = video_to_frames(input_video)
         preprocess_config['data_path'] = input_video.split(".")[0]
 
-        total_vid_duration = preprocess_config['frames']/frames_per_second
+        total_vid_duration = len(preprocess_config['frames'])/frames_per_second
         
         if(total_vid_duration < 1):
             preprocess_config['n_frames'] = preprocess_config['frames']
         else:
-            preprocess_config['n_frames'] = frames_per_second/n_seconds
+            preprocess_config['n_frames'] = int(frames_per_second/n_seconds)
         
         if preprocess_config['n_frames'] % batch_size != 0:
             preprocess_config['batch_size'] = largest_divisor(batch_size)
