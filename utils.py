@@ -42,7 +42,7 @@ def video_to_frames(video_path, img_size=(512,512)):
         image = T.ToPILImage()(video[i])
         
         # get new height and width to maintain aspect ratio
-        height, width = image.shape
+        height, width = image.size
         new_height = img_size[0] * height / width 
         new_width  = img_size[1] * width / height
         
