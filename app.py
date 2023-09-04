@@ -125,7 +125,7 @@ def calculate_fps(input_video, batch_size):
     print("total vid duration", total_vid_duration)
     print("frames to process", frames_to_process)
     print("batch size", batch_size)
-    return frames, batch_size, frames_to_process
+    return frames, batch_size, frames_to_process, None
 
 def preprocess_and_invert(input_video,
                           frames,
@@ -192,7 +192,7 @@ def preprocess_and_invert(input_video,
         inverted_latents = gr.State(value=total_inverted_latents)
         do_inversion = False
    
-    return frames, latents, inverted_latents, do_inversion, preprocess_config['batch_size'], preprocess_config['n_frames']
+    return frames, latents, inverted_latents, do_inversion, preprocess_config['batch_size'], preprocess_config['n_frames'], None
 
 
 def edit_with_pnp(input_video,
@@ -371,7 +371,7 @@ with gr.Blocks(css="style.css") as demo:
     input_video.upload(
         fn = reset_do_inversion,
         outputs = [do_inversion],
-        queue = False).then(fn = calculate_fps, inputs=[input_video], outputs=[frames, batch_size, n_frames], queue=False).then(fn = preprocess_and_invert,
+        queue = False).then(fn = calculate_fps, inputs=[input_video, batch_size], outputs=[frames, batch_size, n_frames], queue=False).then(fn = preprocess_and_invert,
           inputs = [input_video,
                       frames,
                       latents,
@@ -391,9 +391,10 @@ with gr.Blocks(css="style.css") as demo:
                      inverted_latents,
                      do_inversion,
                      batch_size,
-                     n_frames
+                     n_frames,
+                     run_button
           ])
-    input_video.change(fn = calculate_fps, inputs=[input_video], outputs=[batch_size, n_frames], queue=False)
+    input_video.change(fn = calculate_fps, inputs=[input_video, batch_size], outputs=[batch_size, n_frames, run_button], queue=False)
     
     run_button.click(fn = edit_with_pnp,
                      inputs = [input_video,
