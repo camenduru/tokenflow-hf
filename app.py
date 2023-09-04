@@ -112,20 +112,20 @@ def prep(config):
 
 def calculate_fps(input_video, batch_size):
     frames, frames_per_second = video_to_frames(input_video)
-    total_vid_frames = len(frames)
-    total_vid_duration = total_vid_frames/frames_per_second
+    #total_vid_frames = len(frames)
+    #total_vid_duration = total_vid_frames/frames_per_second
         
-    if(total_vid_duration < 1):
-        frames_to_process = total_vid_frames
-    else:
-        frames_to_process = int(frames_per_second/n_seconds)
-        
-    if frames_to_process % batch_size != 0:
-        batch_size = largest_divisor(batch_size)
-    print("total vid duration", total_vid_duration)
-    print("frames to process", frames_to_process)
-    print("batch size", batch_size)
-    return frames, batch_size, frames_to_process, gr.update(visible=False)
+    #if(total_vid_duration < 1):
+    #    frames_to_process = total_vid_frames
+    #else:
+    #    frames_to_process = int(frames_per_second/n_seconds)
+    #    
+    #if frames_to_process % batch_size != 0:
+    #    batch_size = largest_divisor(batch_size)
+    #print("total vid duration", total_vid_duration)
+    #print("frames to process", frames_to_process)
+    #print("batch size", batch_size)
+    return frames, frames_per_second
 
 def preprocess_and_invert(input_video,
                           frames,
@@ -140,6 +140,7 @@ def preprocess_and_invert(input_video,
                           batch_size: int = 8,
                           n_frames: int = 40,
                           n_seconds: int = 1,
+                          n_fps_input: int = 40,
                           inversion_prompt:str = '',
                           
               ):
@@ -166,18 +167,17 @@ def preprocess_and_invert(input_video,
         else:
             preprocess_config['frames'] = frames
         preprocess_config['data_path'] = input_video.split(".")[0]
-
-        if(not_processed):
-            total_vid_frames = len(preprocess_config['frames'])
-            total_vid_duration = total_vid_frames/frames_per_second
+        
+        total_vid_frames = len(preprocess_config['frames'])
+        total_vid_duration = total_vid_frames/frames_per_second
             
-            if(total_vid_duration < 1):
-                preprocess_config['n_frames'] = total_vid_frames
-            else:
-                preprocess_config['n_frames'] = int(frames_per_second/n_seconds)
+        if(total_vid_duration < 1):
+            preprocess_config['n_frames'] = total_vid_frames
+        else:
+            preprocess_config['n_frames'] = int(frames_per_second/n_seconds)
             
-            if preprocess_config['n_frames'] % batch_size != 0:
-                preprocess_config['batch_size'] = largest_divisor(batch_size)
+        if preprocess_config['n_frames'] % batch_size != 0:
+            preprocess_config['batch_size'] = largest_divisor(batch_size)
 
         print("Running with batch size of ", preprocess_config['batch_size'])
         print("Total vid frames", preprocess_config['n_frames'])
@@ -194,7 +194,7 @@ def preprocess_and_invert(input_video,
         inverted_latents = gr.State(value=total_inverted_latents)
         do_inversion = False
    
-    return frames, latents, inverted_latents, do_inversion, preprocess_config['batch_size'], preprocess_config['n_frames'], None
+    return frames, latents, inverted_latents, do_inversion, preprocess_config['batch_size'], preprocess_config['n_frames']
 
 
 def edit_with_pnp(input_video,
@@ -212,6 +212,7 @@ def edit_with_pnp(input_video,
                   batch_size: int = 8, #needs to be the same as for preprocess
                   n_frames: int = 40,#needs to be the same as for preprocess
                   n_seconds: int = 1,
+                  n_fps_input: int = 40,
                   n_timesteps: int = 50,
                   gudiance_scale: float = 7.5,
                   inversion_prompt: str = "", #needs to be the same as for preprocess
@@ -337,8 +338,10 @@ with gr.Blocks(css="style.css") as demo:
                                               minimum=1, maximum=2, step=1)
                         n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
                                               value=50, step=25, interactive=True)
-                        n_fps = gr.Slider(label='Frames per second', minimum=1, maximum=60,
+                        n_fps_input = gr.Slider(label="Input frames per second", value=40, minimum=1, maximum=120)
+                        n_fps = gr.Slider(label='Output frames per second', minimum=1, maximum=60,
                                               value=10, step=1, interactive=True)
+                        
                         
             with gr.TabItem('Plug-and-Play Parameters'):
                  with gr.Column(min_width=100):
@@ -373,7 +376,7 @@ with gr.Blocks(css="style.css") as demo:
     input_video.upload(
         fn = reset_do_inversion,
         outputs = [do_inversion],
-        queue = False).then(fn = calculate_fps, inputs=[input_video, batch_size], outputs=[frames, batch_size, n_frames], queue=False).then(fn = preprocess_and_invert,
+        queue = False).then(fn = calculate_fps, inputs=[input_video], outputs=[frames, n_fps_input], queue=False).then(fn = preprocess_and_invert,
           inputs = [input_video,
                       frames,
                       latents,
@@ -386,6 +389,7 @@ with gr.Blocks(css="style.css") as demo:
                       batch_size,
                       n_frames,
                       n_seconds,
+                      n_fps_input,
                       inversion_prompt
           ],
           outputs = [frames,
@@ -393,11 +397,10 @@ with gr.Blocks(css="style.css") as demo:
                      inverted_latents,
                      do_inversion,
                      batch_size,
-                     n_frames,
-                     run_button
+                     n_frames
           ])
     
-    input_video.change(fn = calculate_fps, inputs=[input_video, batch_size], outputs=[frames, batch_size, n_frames], queue=False)
+    input_video.change(fn = calculate_fps, inputs=[input_video], outputs=[frames, n_fps_input], queue=False)
     
     run_button.click(fn = edit_with_pnp,
                      inputs = [input_video,
@@ -414,6 +417,7 @@ with gr.Blocks(css="style.css") as demo:
                               batch_size,
                               n_frames,
                               n_seconds,
+                              n_fps_input,
                               n_timesteps,
                               gudiance_scale,
                               inversion_prompt,
