@@ -162,19 +162,19 @@ def preprocess_and_invert(input_video,
         preprocess_config['inversion_prompt'] = inversion_prompt
         not_processed = False
         if(not frames):
-            preprocess_config['frames'],frames_per_second = video_to_frames(input_video)
+            preprocess_config['frames'],n_fps_input = video_to_frames(input_video)
             not_processed = True
         else:
             preprocess_config['frames'] = frames
         preprocess_config['data_path'] = input_video.split(".")[0]
         
         total_vid_frames = len(preprocess_config['frames'])
-        total_vid_duration = total_vid_frames/frames_per_second
+        total_vid_duration = total_vid_frames/n_fps_input
             
         if(total_vid_duration < 1):
             preprocess_config['n_frames'] = total_vid_frames
         else:
-            preprocess_config['n_frames'] = int(frames_per_second/n_seconds)
+            preprocess_config['n_frames'] = int(n_fps_input/n_seconds)
             
         if preprocess_config['n_frames'] % batch_size != 0:
             preprocess_config['batch_size'] = largest_divisor(batch_size)
