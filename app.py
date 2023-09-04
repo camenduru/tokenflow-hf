@@ -125,7 +125,7 @@ def calculate_fps(input_video, batch_size):
     print("total vid duration", total_vid_duration)
     print("frames to process", frames_to_process)
     print("batch size", batch_size)
-    return frames, batch_size, frames_to_process, None
+    return frames, batch_size, frames_to_process, gr.update(visible=False)
 
 def preprocess_and_invert(input_video,
                           frames,
@@ -396,7 +396,7 @@ with gr.Blocks(css="style.css") as demo:
                      n_frames,
                      run_button
           ])
-    input_video.change(fn = calculate_fps, inputs=[input_video, batch_size], outputs=[batch_size, n_frames, run_button], queue=False)
+    input_video.change(fn = calculate_fps, inputs=[input_video, batch_size], outputs=[frames, batch_size, n_frame], queue=False)
     
     run_button.click(fn = edit_with_pnp,
                      inputs = [input_video,
