@@ -304,6 +304,23 @@ with gr.Blocks(css="style.css") as demo:
         outputs = [do_inversion],
         queue = False)
 
+    inversion_prompt.change(
+        fn = reset_do_inversion,
+        outputs = [do_inversion],
+        queue = False)
+
+    randomize_seed.change(
+        fn = reset_do_inversion,
+        outputs = [do_inversion],
+        queue = False)
+
+    seed.change(
+        fn = reset_do_inversion,
+        outputs = [do_inversion],
+        queue = False)
+
+    
+
     input_video.upload(
         fn = reset_do_inversion,
         outputs = [do_inversion],
