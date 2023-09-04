@@ -108,7 +108,23 @@ def prep(config):
 
     
     return frames, latents, total_inverted_latents, rgb_reconstruction
-    
+
+
+def calculate_fps(input_video, batch_size):
+    frames, frames_per_second = video_to_frames(input_video)
+    total_vid_frames = len(frames)
+    total_vid_duration = total_vid_frames/frames_per_second
+        
+    if(total_vid_duration < 1):
+        frames_to_process = total_vid_frames
+    else:
+        frames_to_process = int(frames_per_second/n_seconds)
+        
+    if frames_to_process % batch_size != 0:
+        batch_size = largest_divisor(batch_size)
+
+    return frames, batch_size, frames_to_process
+
 def preprocess_and_invert(input_video,
                           frames,
                           latents,
@@ -141,21 +157,27 @@ def preprocess_and_invert(input_video,
         #preprocess_config['n_frames'] = n_frames
         preprocess_config['seed'] = seed
         preprocess_config['inversion_prompt'] = inversion_prompt
-        preprocess_config['frames'], frames_per_second = video_to_frames(input_video)
+        not_processed = False
+        if(not frames):
+            preprocess_config['frames'],frames_per_second = video_to_frames(input_video)
+            not_processed = True
         preprocess_config['data_path'] = input_video.split(".")[0]
 
-        total_vid_frames = len(preprocess_config['frames'])
-        total_vid_duration = total_vid_frames/frames_per_second
-        
-        if(total_vid_duration < 1):
-            preprocess_config['n_frames'] = total_vid_frames
-        else:
-            preprocess_config['n_frames'] = int(frames_per_second/n_seconds)
-        
-        if preprocess_config['n_frames'] % batch_size != 0:
-            preprocess_config['batch_size'] = largest_divisor(batch_size)
+        if(not_processed):
+            total_vid_frames = len(preprocess_config['frames'])
+            total_vid_duration = total_vid_frames/frames_per_second
+            
+            if(total_vid_duration < 1):
+                preprocess_config['n_frames'] = total_vid_frames
+            else:
+                preprocess_config['n_frames'] = int(frames_per_second/n_seconds)
+            
+            if preprocess_config['n_frames'] % batch_size != 0:
+                preprocess_config['batch_size'] = largest_divisor(batch_size)
 
         print("Running with batch size of ", preprocess_config['batch_size'])
+        print("Total vid frames", preprocess_config['n_frames'])
+        
         if randomize_seed:
             seed = randomize_seed_fn()
         seed_everything(seed)
@@ -205,7 +227,9 @@ def edit_with_pnp(input_video,
     config["pnp_attn_t"] = pnp_attn_t
     config["pnp_f_t"] = pnp_f_t
     config["pnp_inversion_prompt"] = inversion_prompt
-    
+
+    print("Running with batch size of ", config['batch_size'])
+    print("Total vid frames", config['n_frames'])
     
     if do_inversion:
         frames, latents, inverted_latents, do_inversion, batch_size, n_frames = preprocess_and_invert(
@@ -345,7 +369,7 @@ with gr.Blocks(css="style.css") as demo:
     input_video.upload(
         fn = reset_do_inversion,
         outputs = [do_inversion],
-        queue = False).then(fn = preprocess_and_invert,
+        queue = False).then(fn = calculate_fps, inputs=[input_video], outputs=[frames, batch_size, n_frames], queue=False).then(fn = preprocess_and_invert,
           inputs = [input_video,
                       frames,
                       latents,
@@ -367,6 +391,7 @@ with gr.Blocks(css="style.css") as demo:
                      batch_size,
                      n_frames
           ])
+    input_video.change(fn = calculate_fps, inputs=[input_video], outputs=[batch_size, n_frames], queue=False)
     
     run_button.click(fn = edit_with_pnp,
                      inputs = [input_video,
