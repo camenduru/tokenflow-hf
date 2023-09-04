@@ -31,6 +31,9 @@ def save_video_frames(video_path, img_size=(512,512)):
 def video_to_frames(video_path, img_size=(512,512)):
     video, _, video_info = read_video(video_path, output_format="TCHW")
     print(video_info["fps"])
+    print(video_info["video_fps"])
+    print(video_info)
+    
     # rotate video -90 degree if video is .mov format. this is a weird bug in torchvision
     if video_path.endswith('.mov'):
         video = T.functional.rotate(video, -90)
