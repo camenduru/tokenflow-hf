@@ -6,6 +6,7 @@ from utils import video_to_frames, add_dict_to_yaml_file, save_video, seed_every
 from tokenflow_pnp import TokenFlow
 from preprocess_utils import *
 from tokenflow_utils import *
+import math
 # load sd model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_id = "stabilityai/stable-diffusion-2-1-base"
@@ -51,6 +52,11 @@ def get_example():
     ]
     return case
 
+def largest_divisor(n):
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            return n // i
+    return n
 
 def prep(config):
     # timesteps to save
@@ -115,6 +121,7 @@ def preprocess_and_invert(input_video,
                           n_timesteps = 50,
                           batch_size: int = 8,
                           n_frames: int = 40,
+                          n_seconds: int = 1,
                           inversion_prompt:str = '',
                           
               ):
@@ -131,13 +138,22 @@ def preprocess_and_invert(input_video,
         preprocess_config['steps'] = steps
         preprocess_config['batch_size'] = batch_size
         preprocess_config['save_steps'] = int(n_timesteps)
-        preprocess_config['n_frames'] = n_frames
+        #preprocess_config['n_frames'] = n_frames
         preprocess_config['seed'] = seed
         preprocess_config['inversion_prompt'] = inversion_prompt
-        preprocess_config['frames'] = video_to_frames(input_video)
+        preprocess_config['frames'], frames_per_second = video_to_frames(input_video)
         preprocess_config['data_path'] = input_video.split(".")[0]
-        
 
+        total_vid_duration = preprocess_config['frames']/frames_per_second
+        
+        if(total_vid_duration < 1):
+            preprocess_config['n_frames'] = preprocess_config['frames']
+        else:
+            preprocess_config['n_frames'] = frames_per_second/n_seconds
+        
+        if preprocess_config['n_frames'] % batch_size != 0:
+            preprocess_config['batch_size'] = largest_divisor(batch_size)
+        
         if randomize_seed:
             seed = randomize_seed_fn()
         seed_everything(seed)
@@ -150,7 +166,7 @@ def preprocess_and_invert(input_video,
         inverted_latents = gr.State(value=total_inverted_latents)
         do_inversion = False
    
-    return frames, latents, inverted_latents, do_inversion
+    return frames, latents, inverted_latents, do_inversion, preprocess_config['batch_size'], preprocess_config['n_frames']
 
 
 def edit_with_pnp(input_video,
@@ -167,6 +183,7 @@ def edit_with_pnp(input_video,
                   pnp_f_t: float = 0.8,
                   batch_size: int = 8, #needs to be the same as for preprocess
                   n_frames: int = 40,#needs to be the same as for preprocess
+                  n_seconds: int = 1,
                   n_timesteps: int = 50,
                   gudiance_scale: float = 7.5,
                   inversion_prompt: str = "", #needs to be the same as for preprocess
@@ -189,7 +206,7 @@ def edit_with_pnp(input_video,
     
     
     if do_inversion:
-        frames, latents, inverted_latents, do_inversion =  preprocess_and_invert(
+        frames, latents, inverted_latents, do_inversion, batch_size, n_frames = preprocess_and_invert(
                           input_video,
                           frames,
                           latents,
@@ -201,7 +218,10 @@ def edit_with_pnp(input_video,
                           n_timesteps,
                           batch_size,
                           n_frames,
+                          n_seconds,
                           inversion_prompt)
+        config["batch_size"] = batch_size
+        config["n_frames"] = n_frames
         do_inversion = False
         
     
@@ -221,7 +241,6 @@ def edit_with_pnp(input_video,
 # demo #
 ########
 
-
 intro = """
 <div style="text-align:center">
 <h1 style="font-weight: 1400; text-align: center; margin-bottom: 7px;">
@@ -232,8 +251,6 @@ intro = """
 <img style="margin-top: 0em; margin-bottom: 0em; margin-left: 0.5em" src="https://bit.ly/3CWLGkA" alt="Duplicate Space"></a></div>
 </div>
 """
-
-
 
 with gr.Blocks(css="style.css") as demo:
     
@@ -282,10 +299,12 @@ with gr.Blocks(css="style.css") as demo:
                         
                     with gr.Column(min_width=100):
                         inversion_prompt = gr.Textbox(lines=1, label="Inversion prompt", interactive=True, placeholder="")
-                        batch_size = gr.Slider(label='Batch size', minimum=1, maximum=10,
-                                              value=8, step=1, interactive=True)
+                        batch_size = gr.Slider(label='Batch size', minimum=1, maximum=100,
+                                              value=8, step=1, interactive=True, visible=False)
                         n_frames = gr.Slider(label='Num frames', minimum=2, maximum=200,
-                                              value=24, step=1, interactive=True)
+                                              value=24, step=1, interactive=True, visible=False)
+                        n_seconds = gr.Slider(label='Num seconds', info="How many seconds of your video to process",
+                                              minimum=1, maximum=2, step=1)
                         n_timesteps = gr.Slider(label='Diffusion steps', minimum=25, maximum=100,
                                               value=50, step=25, interactive=True)
                         n_fps = gr.Slider(label='Frames per second', minimum=1, maximum=60,
@@ -336,13 +355,15 @@ with gr.Blocks(css="style.css") as demo:
                       n_timesteps,
                       batch_size,
                       n_frames,
+                      n_seconds,
                       inversion_prompt
           ],
           outputs = [frames,
                      latents,
                      inverted_latents,
-                     do_inversion
-              
+                     do_inversion,
+                     batch_size,
+                     n_frames
           ])
     
     run_button.click(fn = edit_with_pnp,
@@ -359,6 +380,7 @@ with gr.Blocks(css="style.css") as demo:
                               pnp_f_t,
                               batch_size,
                               n_frames,
+                              n_seconds,
                               n_timesteps,
                               gudiance_scale,
                               inversion_prompt,
