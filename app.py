@@ -163,6 +163,8 @@ def preprocess_and_invert(input_video,
         if(not frames):
             preprocess_config['frames'],frames_per_second = video_to_frames(input_video)
             not_processed = True
+        else:
+            preprocess_config['frames'] = frames
         preprocess_config['data_path'] = input_video.split(".")[0]
 
         if(not_processed):
