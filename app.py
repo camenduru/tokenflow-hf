@@ -396,7 +396,8 @@ with gr.Blocks(css="style.css") as demo:
                      n_frames,
                      run_button
           ])
-    input_video.change(fn = calculate_fps, inputs=[input_video, batch_size], outputs=[frames, batch_size, n_frame], queue=False)
+    
+    input_video.change(fn = calculate_fps, inputs=[input_video, batch_size], outputs=[frames, batch_size, n_frames], queue=False)
     
     run_button.click(fn = edit_with_pnp,
                      inputs = [input_video,
