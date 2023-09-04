@@ -16,7 +16,7 @@ from kornia.utils.grid import create_meshgrid
 import cv2
 
 def save_video_frames(video_path, img_size=(512,512)):
-    video, _, _ = read_video(video_path, output_format="TCHW")
+    video, _,  = read_video(video_path, output_format="TCHW")
     # rotate video -90 degree if video is .mov format. this is a weird bug in torchvision
     if video_path.endswith('.mov'):
         video = T.functional.rotate(video, -90)
@@ -29,7 +29,8 @@ def save_video_frames(video_path, img_size=(512,512)):
         image_resized.save(f'data/{video_name}/{ind}.png')
         
 def video_to_frames(video_path, img_size=(512,512)):
-    video, _, _ = read_video(video_path, output_format="TCHW")
+    video, _, video_info = read_video(video_path, output_format="TCHW")
+    print(video_info["fps"])
     # rotate video -90 degree if video is .mov format. this is a weird bug in torchvision
     if video_path.endswith('.mov'):
         video = T.functional.rotate(video, -90)
