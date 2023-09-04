@@ -125,6 +125,7 @@ def calculate_fps(input_video, batch_size):
     #print("total vid duration", total_vid_duration)
     #print("frames to process", frames_to_process)
     #print("batch size", batch_size)
+    print("fps", frames_per_second)
     return frames, frames_per_second
 
 def preprocess_and_invert(input_video,
@@ -166,9 +167,12 @@ def preprocess_and_invert(input_video,
             not_processed = True
         else:
             preprocess_config['frames'] = frames
+        
+        print("pre-process fps ", n_fps_input)
         preprocess_config['data_path'] = input_video.split(".")[0]
         
         total_vid_frames = len(preprocess_config['frames'])
+        print("total frames", total_vid_frames)
         total_vid_duration = total_vid_frames/n_fps_input
             
         if(total_vid_duration < 1):
